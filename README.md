@@ -1,13 +1,12 @@
 Cloudformation Demo
 ===================
 
-1. Creating a basic template
-----------------------------
+## 1. Creating a basic template
+-------------------------------
 
-Let's create a single EC2 instance
+Let's create a single EC2 instance! To help us, available resources are documented and we can look up properties and values etc. See documentation at https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html.
 
-See documentation at https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html
-- Show different resources, links and examples
+Take a look at file [basic-ec2.yaml]()
 
 $ aws cloudformation create-stack --stack-name "Demo-Stack-Steve" --template-body file://basic-ec2.yaml
 $ aws cloudformation list-stacks --max-items 5
@@ -22,7 +21,7 @@ $ aws cloudformation list-stacks --max-items 5
 Let's fix these in our next template...
 
 
-2. Updating the template and stack
+## 2. Updating the template and stack
 ----------------------------------
 
 In this new template we've pulled out the Instance Type into a parameter.
@@ -37,7 +36,7 @@ $ aws cloudformation update-stack --stack-name "Demo-Stack-Steve" --template-bod
 - Hard coded AMI won't work in another region
 
 
-3. Specifying mappings
+## 3. Specifying mappings
 ----------------------
 
 We've now pulled out subnet and AMI into a mapping so it can change based on the region.
@@ -46,7 +45,7 @@ We'll also turn on detailed monitoring if we're deploying to Production, basic i
 $ aws cloudformation update-stack --stack-name "Demo-Stack-Steve" --template-body file://3-mappings-ec2.yml --parameters ParameterKey=InstanceTypeParameter,ParameterValue=t2.medium,ParameterKey=Environment,ParameterValue=Prod --tags Key=Owner,Value=StevenChallis
 
 
-4. Autoscaling EC2 instances
+## 4. Autoscaling EC2 instances
 ----------------------------
 
 Let's replace our single instance with an autoscaling group whose size depends
@@ -56,7 +55,7 @@ is tranferred as-is to the Launch Config.
 $ aws cloudformation update-stack --stack-name "Demo-Stack-Steve" --template-body file://4-autoscaling-ec2.yml --parameters ParameterKey=InstanceTypeParameter,ParameterValue=t2.medium,ParameterKey=Environment,ParameterValue=Prod --tags Key=Owner,Value=StevenChallis
 
 
-5. Delete the stack
+## 5. Delete the stack
 -------------------
 
 One advantage of a stack is that it makes it easy to remove all resources when
@@ -65,7 +64,7 @@ we are done. Let's see this by deleting our stack.
 $ aws cloudformation delete-stack --stack-name "Demo-Stack"
 
 
-6. Let's construct your workload
+## 6. Let's construct your workload
 --------------------------------
 
 We'll draw out the components and determine what we need in our template
