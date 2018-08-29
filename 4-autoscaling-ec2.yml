@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Deploy multiple EC2 instances in an ASG
+
+Mappings:
+
+  EnvironmentMap:
+    Dev:
+      MinSize: 1
+      MaxSize: 1
+    Prod:
+      MinSize: 2
+      MaxSize: 10
+  RegionMap:
+    us-west-2:
+      Ami: ami-6cd6f714
+      Subnets:
+        - subnet-24bc0f6f
+        - subnet-24bc0f6f
+    us-east-1:
+      Ami: ami-04681a1dbd79675a5
+      Subnets:
+        - subnet-64d3ac01
+        - subnet-91bcc3ca
+
+Parameters:
+
+  InstanceTypeParameter: 
+    Type: String
+    Default: t2.micro
+    AllowedValues: 
+      - t2.micro
+      - m1.small
+      - m1.large
+    Description: Enter t2.micro, m1.small, or m1.large. Default is t2.micro.
+  Environment:
+    Type: String
+    Default: Dev
+    AllowedValues:
+      - Dev
+      - Prod
+    Description: Enter the environment that this is being deployed into.
+    
+Conditions:
+  inProd:
+    !Equals [!Ref Environment, 'Prod']
+
+Resources:
+
+  # NOTE: We no longer need to specify a specific instance, instead an
+  # Auto Scaling Group will create and maintain the desired number for us.
+
+  # EC2Instance:
+  #   Type: AWS::EC2::Instance
+  #   Properties:
+  #     ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', Ami]  # Lookup AMI from the mapping
+  #     InstanceType:
+  #       Ref: InstanceTypeParameter
+  #     Monitoring: # Turn on monitoring if in Production
+  #       !If [inProd, true, !Ref 'AWS::NoValue']
+  #     Tags: 
+  #       -
+  #         Key: Name
+  #         Value: My EC2 Instance
+  #       -
+  #         Key: Project
+  #         Value: Workshop
+  
+  
+  WebLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', Ami]
+      InstanceType:
+        Ref: InstanceTypeParameter
+      InstanceMonitoring:
+        !If [inProd, true, !Ref 'AWS::NoValue']
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sdk"
+          Ebs:
+            VolumeSize: '50'
+          
+  WebServerGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+        !FindInMap [RegionMap, !Ref 'AWS::Region', Subnets]
+      LaunchConfigurationName:
+        Ref: WebLaunchConfig
+      MinSize: !FindInMap [EnvironmentMap, !Ref Environment, MinSize]
+      MaxSize: !FindInMap [EnvironmentMap, !Ref Environment, MaxSize]
+      Tags: 
+        -
+          Key: Layer
+          Value: Web
+          PropagateAtLaunch: true
+        -
+          Key: Name
+          Value: My Web Instances
+          PropagateAtLaunch: true
+      # LoadBalancerNames:
+      # - Ref: LB
+      
+  ScaleUpPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: !Ref WebServerGroup
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+        TargetValue: 70.0
