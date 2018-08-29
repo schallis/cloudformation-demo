@@ -10,7 +10,7 @@ Take a look at file [1-basic-ec2.yml](1-basic-ec2.yml)
 
 You can spin this up from the command line (on Linux) with the following commands:
 
-    $ aws cloudformation create-stack --stack-name "Demo-Stack-Steve" --template-body file://basic-ec2.yaml
+    $ aws cloudformation create-stack --stack-name "Demo-Stack-Steve" --template-body file://1-basic-ec2.yaml
     $ aws cloudformation list-stacks --max-items 5
 
 **Problems:**
@@ -77,7 +77,13 @@ we are done. Let's see this in action by deleting our stack... we know we can ea
 ## 6. Now, let's construct one your workloads
 ---------------------------------------------
 
-It might be helpful to draw out the components to help determine what we will need in our template
+It might be helpful to draw out the components to help determine what we will need in our template.
+
+You can build upon these templates and add features such as:
+- A Load Balancer
+- An Output specifying the URL of the load balancer
+- A userdata script to bootstrap the EC2 instance
+- 
 
 
 Further Learning
